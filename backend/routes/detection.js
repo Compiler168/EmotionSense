@@ -18,6 +18,11 @@ const axios = require('axios');
 const FormData = require('form-data');
 const Detection = require('../models/Detection');
 
+// ─── In-Memory Fallback ─────────────────────────────────────────
+// If MongoDB is unavailable (e.g., connection blocked or not running),
+// we store detection history in memory so the dashboard continues to work.
+let fallbackHistory = [];
+
 // Configure multer for in-memory file storage
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -82,6 +87,22 @@ router.post('/detect', upload.single('image'), async (req, res) => {
 
                     // Save synchronously to ensure the record is available for history
                     await detection.save();
+                    result.detection_id = detection._id;
+                } else {
+                    // Fallback to in-memory array
+                    const detection = {
+                        _id: 'local_' + Date.now(),
+                        emotion: primary.dominant_emotion,
+                        confidence: primary.confidence,
+                        emoji: primary.emoji,
+                        allEmotions: primary.all_emotions,
+                        facesDetected: result.faces_detected,
+                        inputMethod: 'upload',
+                        createdAt: new Date(),
+                        thumbnail: thumbnail.length < 500000 ? thumbnail : null
+                    };
+                    fallbackHistory.unshift(detection);
+                    if (fallbackHistory.length > 200) fallbackHistory.pop(); // Keep last 200
                     result.detection_id = detection._id;
                 }
             } catch (dbErr) {
@@ -149,6 +170,22 @@ router.post('/detect/webcam', async (req, res) => {
                     // Save synchronously to ensure the record is available for history
                     await detection.save();
                     result.detection_id = detection._id;
+                } else {
+                    // Fallback to in-memory array
+                    const detection = {
+                        _id: 'local_' + Date.now(),
+                        emotion: primary.dominant_emotion,
+                        confidence: primary.confidence,
+                        emoji: primary.emoji,
+                        allEmotions: primary.all_emotions,
+                        facesDetected: result.faces_detected,
+                        inputMethod: 'webcam',
+                        createdAt: new Date(),
+                        thumbnail: image.length < 500000 ? image : null
+                    };
+                    fallbackHistory.unshift(detection);
+                    if (fallbackHistory.length > 200) fallbackHistory.pop(); // Keep last 200
+                    result.detection_id = detection._id;
                 }
             } catch (dbErr) {
                 console.error('Database error (non-blocking):', dbErr.message);
@@ -180,19 +217,25 @@ router.post('/detect/webcam', async (req, res) => {
 // Get detection history (newest first)
 router.get('/history', async (req, res) => {
     try {
-        const mongoose = require('mongoose');
-        if (mongoose.connection.readyState !== 1) {
-            return res.json({
-                success: true,
-                detections: [],
-                pagination: { total: 0, page: 1, limit: 50, pages: 0 },
-                message: "Database is disconnected. History unavailable."
-            });
-        }
-
         const limit = parseInt(req.query.limit) || 50;
         const page = parseInt(req.query.page) || 1;
         const skip = (page - 1) * limit;
+
+        const mongoose = require('mongoose');
+        if (mongoose.connection.readyState !== 1) {
+            // Serve from in-memory fallback
+            const paginatedFallback = fallbackHistory.slice(skip, skip + limit);
+            return res.json({
+                success: true,
+                detections: paginatedFallback,
+                pagination: { 
+                    total: fallbackHistory.length, 
+                    page, 
+                    limit, 
+                    pages: Math.ceil(fallbackHistory.length / limit) 
+                }
+            });
+        }
 
         const [detections, total] = await Promise.all([
             Detection.find()
@@ -225,6 +268,16 @@ router.get('/history', async (req, res) => {
 // Clear all detection history
 router.delete('/history', async (req, res) => {
     try {
+        const mongoose = require('mongoose');
+        if (mongoose.connection.readyState !== 1) {
+            const count = fallbackHistory.length;
+            fallbackHistory = [];
+            return res.json({
+                success: true,
+                message: `Cleared ${count} local detection records`
+            });
+        }
+
         const result = await Detection.deleteMany({});
         res.json({
             success: true,
@@ -243,21 +296,35 @@ router.get('/stats', async (req, res) => {
         // Check if database is connected (readyState 1 = connected)
         const mongoose = require('mongoose');
         if (mongoose.connection.readyState !== 1) {
-            // Return default stats if database is disconnected
+            // Compute stats from in-memory fallback
+            const totalDetections = fallbackHistory.length;
+            const emotionDistribution = { 'Happy': 0, 'Sad': 0, 'Angry': 0, 'Neutral': 0, 'Surprise': 0 };
+            let avgConfSum = 0;
+            let mostCommon = 'None';
+            let maxCount = 0;
+
+            fallbackHistory.forEach(d => {
+                if (emotionDistribution[d.emotion] !== undefined) {
+                    emotionDistribution[d.emotion]++;
+                }
+                avgConfSum += d.confidence;
+            });
+
+            Object.entries(emotionDistribution).forEach(([emo, count]) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    mostCommon = emo;
+                }
+            });
+
             return res.json({
                 success: true,
                 stats: {
-                    totalDetections: 0,
-                    mostCommonEmotion: 'None',
-                    averageConfidence: 0,
-                    emotionDistribution: {
-                        'Happy': 0,
-                        'Sad': 0,
-                        'Angry': 0,
-                        'Neutral': 0,
-                        'Surprise': 0
-                    },
-                    recentDetections: []
+                    totalDetections,
+                    mostCommonEmotion: mostCommon,
+                    averageConfidence: totalDetections > 0 ? Math.round((avgConfSum / totalDetections) * 100) / 100 : 0,
+                    emotionDistribution,
+                    recentDetections: fallbackHistory.slice(0, 10)
                 }
             });
         }

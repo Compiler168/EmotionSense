@@ -213,6 +213,18 @@ def predict_emotion(face_img):
 
 # ─── API Routes ─────────────────────────────────────────────────
 
+@app.route('/', methods=['GET'])
+def index():
+    """Root endpoint to verify service is running from a browser."""
+    return jsonify({
+        'service': 'EmotionSense AI Service',
+        'status': 'running',
+        'endpoints': {
+            'health_check': 'GET /api/health',
+            'detection': 'POST /api/detect'
+        }
+    })
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""

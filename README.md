@@ -145,18 +145,18 @@ NODE_ENV=development
 
 ### Step 6: Start the Services
 
-**Terminal 1 — AI Service:**
-```bash
-cd ai-service
-python app.py
-# Runs on http://localhost:5000
-```
-
-**Terminal 2 — Backend Server:**
+**Terminal 1 — Backend Server:**
 ```bash
 cd backend
 npm start
 # Runs on http://localhost:3000
+```
+
+**Terminal 2 — AI Service:**
+```bash
+cd ai-service
+python app.py
+# Runs on http://localhost:5000
 ```
 
 ### Step 7: Open the Dashboard

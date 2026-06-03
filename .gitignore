@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Build artifacts
+dist/
+build/
+
+# Model files (large binaries — download separately)
+*.onnx
+*.keras
+*.h5
+*.pkl
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Uploads
+uploads/
+
+# Lock files
+package-lock.json

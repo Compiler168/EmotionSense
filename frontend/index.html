@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EmotionSense Dashboard - AI-powered facial emotion detection using CNN deep learning. Detect Happy, Sad, Angry, Neutral, and Surprise emotions.">
+    <title>EmotionSense Dashboard — AI Emotion Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ─── Animated Background ─── -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ─── Navigation ─── -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">🧠</span>
+            <span class="brand-text">EmotionSense</span>
+        </div>
+        <div class="nav-links">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">Dashboard</a>
+            <a href="#detect" class="nav-link" data-section="detect">Detect</a>
+            <a href="#history" class="nav-link" data-section="history">History</a>
+        </div>
+        <div class="nav-status" id="navStatus">
+            <span class="status-dot disconnected" id="statusDot"></span>
+            <span class="status-text" id="statusText">Connecting...</span>
+        </div>
+    </nav>
+
+    <!-- ─── Main Content ─── -->
+    <main class="main-content">
+
+        <!-- ══════ DASHBOARD SECTION ══════ -->
+        <section class="section active" id="section-dashboard">
+            <div class="section-header">
+                <h1>Emotion Analytics</h1>
+                <p class="section-subtitle">AI-powered facial emotion insights at a glance</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card gradient-purple">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statTotal">0</span>
+                        <span class="stat-label">Total Detections</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-blue">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statConfidence">0%</span>
+                        <span class="stat-label">Avg Confidence</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-green">
+                    <div class="stat-icon" id="statTopEmoji">😐</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statTopEmotion">None</span>
+                        <span class="stat-label">Most Common</span>
+                    </div>
+                </div>
+                <div class="stat-card gradient-orange">
+                    <div class="stat-icon">🧠</div>
+                    <div class="stat-info">
+                        <span class="stat-value">CNN</span>
+                        <span class="stat-label">AI Model</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card glass-card">
+                    <h3 class="chart-title">Emotion Distribution</h3>
+                    <div class="emotion-bars" id="emotionBars">
+                        <div class="emotion-bar-row" data-emotion="Happy">
+                            <span class="bar-emoji">😊</span>
+                            <span class="bar-label">Happy</span>
+                            <div class="bar-track"><div class="bar-fill happy-fill" style="width:0%"></div></div>
+                            <span class="bar-value">0</span>
+                        </div>
+                        <div class="emotion-bar-row" data-emotion="Sad">
+                            <span class="bar-emoji">😢</span>
+                            <span class="bar-label">Sad</span>
+                            <div class="bar-track"><div class="bar-fill sad-fill" style="width:0%"></div></div>
+                            <span class="bar-value">0</span>
+                        </div>
+                        <div class="emotion-bar-row" data-emotion="Angry">
+                            <span class="bar-emoji">😠</span>
+                            <span class="bar-label">Angry</span>
+                            <div class="bar-track"><div class="bar-fill angry-fill" style="width:0%"></div></div>
+                            <span class="bar-value">0</span>
+                        </div>
+                        <div class="emotion-bar-row" data-emotion="Neutral">
+                            <span class="bar-emoji">😐</span>
+                            <span class="bar-label">Neutral</span>
+                            <div class="bar-track"><div class="bar-fill neutral-fill" style="width:0%"></div></div>
+                            <span class="bar-value">0</span>
+                        </div>
+                        <div class="emotion-bar-row" data-emotion="Surprise">
+                            <span class="bar-emoji">😲</span>
+                            <span class="bar-label">Surprise</span>
+                            <div class="bar-track"><div class="bar-fill surprise-fill" style="width:0%"></div></div>
+                            <span class="bar-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card glass-card">
+                    <h3 class="chart-title">Recent Activity</h3>
+                    <div class="recent-list" id="recentList">
+                        <div class="empty-state-small">No detections yet. Start detecting!</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════ DETECT SECTION ══════ -->
+        <section class="section" id="section-detect">
+            <div class="section-header">
+                <h1>Emotion Detection</h1>
+                <p class="section-subtitle">Upload an image or use your webcam to detect facial emotions</p>
+            </div>
+
+            <!-- Mode Tabs -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" id="tabUpload" onclick="switchMode('upload')">
+                    <span>📤</span> Upload Image
+                </button>
+                <button class="mode-tab" id="tabWebcam" onclick="switchMode('webcam')">
+                    <span>📷</span> Webcam
+                </button>
+            </div>
+
+            <div class="detect-layout">
+                <!-- Input Panel -->
+                <div class="detect-panel glass-card">
+                    <!-- Upload Mode -->
+                    <div class="mode-content active" id="modeUpload">
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-icon">📁</div>
+                            <h3>Drop your image here</h3>
+                            <p>or click to browse</p>
+                            <p class="upload-hint">Supports: JPG, PNG, WebP, GIF (Max 10MB)</p>
+                            <input type="file" id="fileInput" accept="image/*" hidden>
+                        </div>
+                        <div class="preview-container" id="previewContainer" style="display:none">
+                            <img id="previewImage" class="preview-img" alt="Preview">
+                            <button class="btn btn-outline btn-sm" onclick="clearPreview()">✕ Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Webcam Mode -->
+                    <div class="mode-content" id="modeWebcam">
+                        <div class="webcam-container">
+                            <video id="webcamVideo" autoplay playsinline></video>
+                            <canvas id="webcamCanvas" style="display:none"></canvas>
+                            <div class="webcam-overlay" id="webcamOverlay">
+                                <span>📷 Camera not started</span>
+                            </div>
+                        </div>
+                        <div class="webcam-controls">
+                            <button class="btn btn-primary" id="btnStartCam" onclick="startWebcam()">Start Camera</button>
+                            <button class="btn btn-danger" id="btnStopCam" onclick="stopWebcam()" style="display:none">Stop Camera</button>
+                            <button class="btn btn-accent" id="btnCapture" onclick="captureFrame()" style="display:none">📸 Capture</button>
+                        </div>
+                    </div>
+
+                    <!-- Detect Button -->
+                    <button class="btn btn-detect" id="btnDetect" onclick="detectEmotion()" disabled>
+                        <span class="btn-detect-icon">🧠</span>
+                        <span>Analyze Emotion</span>
+                    </button>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="results-panel glass-card" id="resultsPanel">
+                    <div class="results-empty" id="resultsEmpty">
+                        <div class="results-empty-icon">🔍</div>
+                        <h3>Awaiting Analysis</h3>
+                        <p>Upload an image or capture from webcam to detect emotions</p>
+                    </div>
+                    <div class="results-content" id="resultsContent" style="display:none">
+                        <div class="result-primary">
+                            <span class="result-emoji" id="resultEmoji">😐</span>
+                            <h2 class="result-emotion" id="resultEmotion">Neutral</h2>
+                            <div class="result-confidence">
+                                <div class="confidence-ring" id="confidenceRing">
+                                    <svg viewBox="0 0 120 120">
+                                        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                                        <circle class="ring-fill" cx="60" cy="60" r="52" id="ringFill"/>
+                                    </svg>
+                                    <span class="ring-text" id="ringText">0%</span>
+                                </div>
+                                <span class="confidence-label">Confidence</span>
+                            </div>
+                        </div>
+                        <div class="result-breakdown">
+                            <h4>All Emotions</h4>
+                            <div id="resultBars"></div>
+                        </div>
+                        <div class="result-meta">
+                            <span id="resultFaces">Faces: 1</span>
+                            <span id="resultTime"></span>
+                        </div>
+                    </div>
+                    <!-- Loading State -->
+                    <div class="results-loading" id="resultsLoading" style="display:none">
+                        <div class="spinner"></div>
+                        <p>Analyzing facial expression...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════ HISTORY SECTION ══════ -->
+        <section class="section" id="section-history">
+            <div class="section-header">
+                <div class="history-header-row">
+                    <div>
+                        <h1>Detection History</h1>
+                        <p class="section-subtitle">All your past emotion detection results</p>
+                    </div>
+                    <button class="btn btn-danger btn-sm" id="btnClearHistory" onclick="clearHistory()">🗑️ Clear All</button>
+                </div>
+            </div>
+
+            <div class="history-table-wrapper glass-card">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Emotion</th>
+                            <th>Confidence</th>
+                            <th>Method</th>
+                            <th>Faces</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr class="empty-row">
+                            <td colspan="6">
+                                <div class="empty-state-small">No detection history yet</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

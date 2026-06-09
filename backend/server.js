@@ -69,13 +69,7 @@ async function startServer() {
     console.log('  EmotionSense Backend Server');
     console.log('═'.repeat(50));
 
-    try {
-        await mongoose.connect(MONGODB_URI);
-        console.log(`✓ MongoDB connected: ${MONGODB_URI}`);
-    } catch (err) {
-        console.error('✗ MongoDB connection failed:', err.message);
-        console.log('  → Server will start without database (history disabled)');
-    }
+    console.log('  → Starting without database (history disabled)');
 
     app.listen(PORT, () => {
         console.log(`\n🚀 Backend server running on http://localhost:${PORT}`);

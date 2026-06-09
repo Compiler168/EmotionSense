@@ -26,7 +26,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Target emotion labels for classification output
-TARGET_EMOTIONS = ['Happy', 'Sad', 'Angry', 'Neutral', 'Surprise']
+TARGET_EMOTIONS = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 # Emoji mapping for each emotion
 EMOTION_EMOJIS = {
@@ -70,9 +70,12 @@ def load_model():
         alt_cascade = None
 
     try:
-        model_path = os.path.join(os.path.dirname(__file__), 'model', 'emotion-ferplus-8.onnx')
-        emotion_net = cv2.dnn.readNetFromONNX(model_path)
-        print("[OK] Deep Learning Emotion Model loaded successfully")
+        model_path = os.path.join(os.path.dirname(__file__), 'model', 'emotionsense-v2.onnx')
+        if not os.path.exists(model_path):
+            print(f"[WARNING] Model not found at {model_path}. Please run train_model.py first.")
+        else:
+            emotion_net = cv2.dnn.readNetFromONNX(model_path)
+            print("[OK] Deep Learning Emotion Model loaded successfully")
     except Exception as e:
         print(f"[WARNING] Failed to load ONNX emotion model: {e}")
 
@@ -133,10 +136,10 @@ def detect_faces(image):
 
 def analyze_face_features(face_img):
     """
-    Analyze facial features using Deep Learning (FER+ ONNX model).
-    The emotion-ferplus-8.onnx model expects:
-      - Input: 1x1x64x64 float32 tensor (grayscale, normalized to 0-1)
-      - Output: 8 classes [neutral, happiness, surprise, sadness, anger, disgust, fear, contempt]
+    Analyze facial features using Deep Learning (emotionsense-v2.onnx).
+    The emotionsense-v2.onnx model expects:
+      - Input: 1x3x224x224 float32 tensor (RGB, ImageNet normalized)
+      - Output: 7 classes ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
     """
     global emotion_net
     if face_img is None or face_img.size == 0:
@@ -146,18 +149,25 @@ def analyze_face_features(face_img):
         return get_default_emotion()
 
     try:
-        # Convert to grayscale
-        gray = cv2.cvtColor(face_img, cv2.COLOR_BGR2GRAY) if len(face_img.shape) == 3 else face_img
-
-        # FER+ ONNX model expects 64x64 grayscale image (pixel values 0-255)
-        blob = cv2.dnn.blobFromImage(
-            gray,
-            scalefactor=1.0,
-            size=(64, 64),
-            mean=(0,),
-            swapRB=False,
-            crop=False
-        )
+        # Convert to RGB (OpenCV uses BGR by default)
+        rgb = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
+        
+        # Resize to 224x224
+        resized = cv2.resize(rgb, (224, 224))
+        
+        # Convert to float32 and scale to [0, 1]
+        img_float = resized.astype(np.float32) / 255.0
+        
+        # Normalize with ImageNet mean and std
+        mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+        std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+        img_normalized = (img_float - mean) / std
+        
+        # Transpose from HWC to CHW format for PyTorch/ONNX
+        img_transposed = np.transpose(img_normalized, (2, 0, 1))
+        
+        # Add batch dimension: shape becomes (1, 3, 224, 224)
+        blob = np.expand_dims(img_transposed, axis=0)
 
         emotion_net.setInput(blob)
         logits = emotion_net.forward()
@@ -166,17 +176,18 @@ def analyze_face_features(face_img):
         exp_logits = np.exp(logits[0] - np.max(logits[0]))
         probs = exp_logits / np.sum(exp_logits)
 
-        # FER+ Classes: 0:neutral, 1:happiness, 2:surprise, 3:sadness, 4:anger, 5:disgust, 6:fear, 7:contempt
-        # Map to our target emotions (use raw softmax probabilities — no re-normalization)
+        # Classes: ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
         emotion_scores = {
-            'Neutral': float(probs[0]),
-            'Happy': float(probs[1]),
-            'Surprise': float(probs[2]),
-            'Sad': float(probs[3]),
-            'Angry': float(probs[4])
+            'Angry': float(probs[0]),
+            'Disgust': float(probs[1]),
+            'Fear': float(probs[2]),
+            'Happy': float(probs[3]),
+            'Neutral': float(probs[4]),
+            'Sad': float(probs[5]),
+            'Surprise': float(probs[6])
         }
 
-        # Normalize only among our 5 target emotions so they sum to 1.0
+        # Normalize to ensure they sum to 1.0 (Softmax does this already, but just to be safe)
         total = sum(emotion_scores.values())
         if total > 0:
             emotion_scores = {k: v / total for k, v in emotion_scores.items()}

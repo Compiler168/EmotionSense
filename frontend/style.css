@@ -27,6 +27,8 @@
     --angry-color: #f87171;
     --neutral-color: #94a3b8;
     --surprise-color: #a78bfa;
+    --fear-color: #f97316;
+    --disgust-color: #84cc16;
 
     --radius-sm: 8px;
     --radius-md: 14px;
@@ -222,6 +224,8 @@ body {
 .angry-fill { background: linear-gradient(90deg, var(--angry-color), #fca5a5); }
 .neutral-fill { background: linear-gradient(90deg, var(--neutral-color), #cbd5e1); }
 .surprise-fill { background: linear-gradient(90deg, var(--surprise-color), #c4b5fd); }
+.fear-fill { background: linear-gradient(90deg, var(--fear-color), #fdba74); }
+.disgust-fill { background: linear-gradient(90deg, var(--disgust-color), #bef264); }
 .bar-value { font-size: 0.8rem; color: var(--text-secondary); text-align: right; font-weight: 600; }
 
 /* ─── Recent Activity ───────────────────────────────────── */
@@ -434,6 +438,8 @@ body {
 .emotion-badge.Angry { background: rgba(248,113,113,0.12); color: var(--angry-color); }
 .emotion-badge.Neutral { background: rgba(148,163,184,0.12); color: var(--neutral-color); }
 .emotion-badge.Surprise { background: rgba(167,139,250,0.12); color: var(--surprise-color); }
+.emotion-badge.Fear { background: rgba(249,115,22,0.12); color: var(--fear-color); }
+.emotion-badge.Disgust { background: rgba(132,204,22,0.12); color: var(--disgust-color); }
 .method-badge {
     font-size: 0.8rem; padding: 3px 10px; border-radius: 12px;
     background: var(--bg-glass); color: var(--text-secondary);

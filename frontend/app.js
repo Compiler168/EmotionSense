@@ -9,10 +9,14 @@
 const API_BASE = window.location.origin + '/api';
 
 // ─── Emoji Map ──────────────────────────────────────────────────
-const EMOJI_MAP = { Happy: '😊', Sad: '😢', Angry: '😠', Neutral: '😐', Surprise: '😲' };
+const EMOJI_MAP = { 
+    Happy: '😊', Sad: '😢', Angry: '😠', Neutral: '😐', Surprise: '😲',
+    Fear: '😨', Disgust: '🤢'
+};
 const COLOR_MAP = {
     Happy: '#fbbf24', Sad: '#60a5fa', Angry: '#f87171',
-    Neutral: '#94a3b8', Surprise: '#a78bfa'
+    Neutral: '#94a3b8', Surprise: '#a78bfa',
+    Fear: '#f97316', Disgust: '#84cc16'
 };
 
 // ─── State ──────────────────────────────────────────────────────

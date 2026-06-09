@@ -298,7 +298,7 @@ router.get('/stats', async (req, res) => {
         if (mongoose.connection.readyState !== 1) {
             // Compute stats from in-memory fallback
             const totalDetections = fallbackHistory.length;
-            const emotionDistribution = { 'Happy': 0, 'Sad': 0, 'Angry': 0, 'Neutral': 0, 'Surprise': 0 };
+            const emotionDistribution = { 'Happy': 0, 'Sad': 0, 'Angry': 0, 'Neutral': 0, 'Surprise': 0, 'Fear': 0, 'Disgust': 0 };
             let avgConfSum = 0;
             let mostCommon = 'None';
             let maxCount = 0;
@@ -352,7 +352,7 @@ router.get('/stats', async (req, res) => {
 
         // Build emotion distribution
         const emotionDistribution = {};
-        const emotions = ['Happy', 'Sad', 'Angry', 'Neutral', 'Surprise'];
+        const emotions = ['Happy', 'Sad', 'Angry', 'Neutral', 'Surprise', 'Fear', 'Disgust'];
         emotions.forEach(e => { emotionDistribution[e] = 0; });
         emotionCounts.forEach(item => {
             if (emotions.includes(item._id)) {

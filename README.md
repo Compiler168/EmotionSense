@@ -319,16 +319,7 @@ This project is licensed under the **MIT License** — free to use for education
 
 ---
 
-## 🎓 Academic Information
 
-| Field | Details |
-|-------|---------|
-| **Course** | Artificial Intelligence (CS-602) |
-| **Student** | Arooj Fatima (BSCS-M-B-23-16) |
-| **Instructor** | Engr. Ghulam Qadir |
-| **University** | University of Layyah |
-
----
 
 <p align="center">
   Built with ❤️ using Python, Node.js, and OpenCV
